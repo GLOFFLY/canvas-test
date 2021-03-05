@@ -1,59 +1,72 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-		<title>画板</title>
-		<link rel="stylesheet" href="style.css" />
-	</head>
 
-	<body>
-		<canvas id="canvas" width="100" height="100"></canvas>
-		<script>
-			let canvas = document.getElementById("canvas");
-			canvas.width = document.documentElement.clientWidth;
-			canvas.height = document.documentElement.clientHeight;
-			let ctx = canvas.getContext("2d");
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title>画板</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
 
-			let painting = false;
+<body>
+	<canvas id="canvas" width="100" height="100"></canvas>
+	<script>
+		let canvas = document.getElementById("canvas");
+		canvas.width = document.documentElement.clientWidth;
+		canvas.height = document.documentElement.clientHeight;
+		let ctx = canvas.getContext("2d");
+		let painting = false;
+		let list;
 
-			ctx.fillStyle = "black";
-			ctx.strokeStyle = "none";
+		ctx.fillStyle = "black";
+		ctx.strokeStyle = "block";
+		ctx.lineWidth = 6;
+		ctx.lineCap = "round";
 
-			let isTouchDevice = "ontouchstart" in document.documentElement;
-			if (isTouchDevice) {
-				canvas.ontouchmove = (e) => {
-					let x = e.touches[0].clientX;
-					let y = e.touches[0].clientY;
-					//踩坑：查的资料有touchs[0]的写法，放这里就错了。
-					//解决方案：写成touches[0]。
-					//获取移动端触摸点clientX/Y的另一种方法：e.changedTouches[0].clientX/Y
-					ctx.beginPath();
-					ctx.arc(x, y, 10, 0, 2 * Math.PI);
-					ctx.stroke();
-					ctx.fill();
-				};
-			} else {
-				canvas.onmousedown = () => {
-					painting = true;
-				};
-
-				canvas.onmousemove = (e) => {
-					if (painting === true) {
-						ctx.beginPath();
-						ctx.arc(e.clientX, e.clientY, 10, 0, 2 * Math.PI);
-						ctx.stroke();
-						ctx.fill();
-					} else {
-						console.log("什么都不做");
-					}
-				};
-
-				canvas.onmouseup = () => {
-					painting = false;
-				};
+		let isTouchDevice = "ontouchstart" in document.documentElement;
+		if (isTouchDevice) {
+			canvas.ontouchstart = (e) => {
+				let x = e.touches[0].clientX;
+				let y = e.touches[0].clientY;
+				last = [x, y];
 			}
-		</script>
-	</body>
+			canvas.ontouchmove = (e) => {
+				let x = e.touches[0].clientX;
+				let y = e.touches[0].clientY;
+				//踩坑：查的资料有touchs[0]的写法，放这里就错了。
+				//解决方案：写成touches[0]。
+				//获取移动端触摸点clientX/Y的另一种方法：e.changedTouches[0].clientX/Y
+				drawLine(last[0], last[1], x, y);
+				last = [x, y];
+			};
+		} else {
+			canvas.onmousedown = (e) => {
+				painting = true;
+				list = [e.clientX, e.clientY];
+			};
+
+			canvas.onmousemove = (e) => {
+				if (painting === true) {
+					drawLine(list[0], list[1], e.clientX, e.clientY);
+					list = [e.clientX, e.clientY];
+				} else {
+					console.log("什么都不做");
+				}
+			};
+
+			canvas.onmouseup = () => {
+				painting = false;
+			};
+		}
+
+		function drawLine(x1, y1, x2, y2) {
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+		}
+	</script>
+</body>
+
 </html>
